@@ -1,0 +1,13 @@
+{
+  "domain": "fireboard",
+  "name": "FireBoard",
+  "codeowners": ["@Ltek"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/Ltek/fireboard",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/Ltek/fireboard/issues",
+  "requirements": ["aiohttp>=3.8.0"],
+  "version": "2026.09.03.28"
+}

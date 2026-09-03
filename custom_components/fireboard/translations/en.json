@@ -1,0 +1,62 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up FireBoard",
+        "description": "Enter your FireBoard account credentials.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      },
+      "device_ips": {
+        "title": "Device LAN IP addresses (optional)",
+        "description": "Enter the local IPv4 address for FireBoard ({device_names}). \n\nOptional, leave empty if you do not want this feature. You can add or change later by using the integration's \"Reconfigure\"\n\nAdding an IP lets the integration auto-detect when the FireBoard comes online on your network. Detecting your device is online starts the polling to contact FireBoard cloud servers (the integration does not poll when your device is offline). \n\nEntered IPs must be a standard IPv4 dotted-decimal, e.g. 192.168.1.50.",
+        "data": {}
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate FireBoard",
+        "description": "Your FireBoard credentials are no longer valid. Re-enter your account password to reconnect.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to FireBoard API",
+      "invalid_auth": "Invalid email or password",
+      "rate_limit": "Rate limit exceeded. Please try again later.",
+      "invalid_ip": "Enter a valid IPv4 address in dotted-decimal format (N.N.N.N), or leave blank.",
+      "unknown": "Unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "This FireBoard account is already configured",
+      "reauth_successful": "Re-authentication was successful"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "FireBoard refresh intervals",
+        "description": "Set how often each FireBoard API endpoint is queried. The FireBoard cloud API allows roughly 200 requests per hour. A single devices query refreshes all temperature, battery and onboard data at once (1 request). Drive data uses a separate query per device. The 10-second minimum is intended for short-term temperature-stability troubleshooting; sustained polling that fast can exceed the API rate limit.",
+        "data": {
+          "devices_interval": "Devices refresh interval (seconds)",
+          "enable_drive": "Enable FireBoard Drive (fan controller) sensors",
+          "drive_interval": "Drive refresh interval (seconds)",
+          "offline_interval": "Offline refresh interval (seconds)",
+          "enable_diagnostics": "Enable diagnostic sensors (IP, MAC, WiFi, battery voltage, versions, etc.)",
+          "enable_setpoint_control": "Enable experimental Drive controls (setpoint, fan speed, on/off, control channel — writes to the device)"
+        },
+        "data_description": {
+          "devices_interval": "How often to query devices.json for temperatures, battery, onboard temp, model and firmware. One request per poll regardless of device count.",
+          "enable_drive": "Adds fan output, setpoint and lid-paused sensors.",
+          "drive_interval": "How often to query drivelog.json. One request per device on each Drive poll (only used when Drive is enabled).",
+          "offline_interval": "Fast poll rate used to catch a reconnection when a device with offline polling enabled is detected on the network but its cloud data is still stale. Also configurable per device via the entities.",
+          "enable_diagnostics": "Creates the normally-hidden diagnostic sensors enabled. You can also enable individual ones from each entity's settings.",
+          "enable_setpoint_control": "Creates the experimental Drive control entities enabled (setpoint, fan speed, fan on/off, control channel). They write to your FireBoard Drive hardware."
+        }
+      }
+    }
+  }
+}
