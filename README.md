@@ -16,10 +16,21 @@ Pulls all data from the **FireBoard cloud REST API** (`https://fireboard.io/api/
 
 ## Installation
 
-1. Copy the `fireboard` folder into `config/custom_components/fireboard/`.
+### Via HACS (recommended)
+
+[![Open your Home Assistant instance and open this repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Ltek&repository=fireboard&category=integration)
+
+1. Click the badge above (adds this repo to HACS), or in HACS → **⋮ → Custom repositories** add `https://github.com/Ltek/fireboard` as an **Integration**.
+2. Install **FireBoard**, then restart Home Assistant.
+
+### Manual
+1. Copy `custom_components/fireboard/` into your Home Assistant `config/custom_components/` folder.
 2. Restart Home Assistant.
+
+### Set up
 3. **Settings → Devices & Services → Add Integration → FireBoard**, enter email + password.
 4. (Optional) On the second setup screen, enter each device's LAN IP — or skip and add it later.
+5. Choose which optional entities to enable, then finish.
 
 Options are changed anytime via **Settings → Devices & Services → FireBoard → Configure**, or directly from the entities below.
 
