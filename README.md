@@ -16,18 +16,8 @@ Pulls all data from the **FireBoard cloud REST API** (`https://fireboard.io/api/
 
 ## Installation
 
-### Via HACS (recommended)
-
-[![Open your Home Assistant instance and open this repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Ltek&repository=fireboard&category=integration)
-
-1. Click the badge above (adds this repo to HACS), or in HACS → **⋮ → Custom repositories** add `https://github.com/Ltek/fireboard` as an **Integration**.
-2. Install **FireBoard**, then restart Home Assistant.
-
-### Manual
-1. Copy `custom_components/fireboard/` into your Home Assistant `config/custom_components/` folder.
+1. Copy the `fireboard` folder into `config/custom_components/fireboard/`.
 2. Restart Home Assistant.
-
-### Set up
 3. **Settings → Devices & Services → Add Integration → FireBoard**, enter email + password.
 4. (Optional) On the second setup screen, enter each device's LAN IP — or skip and add it later.
 
@@ -59,7 +49,7 @@ The moment the IP reappears, an immediate refresh fires. (The fast "offline" rat
 
 ## Entities
 
-All entities for a FireBoard live under a single device named **`FireBoard <serial>`** (e.g. "FireBoard GCMC8H432") — temps, diagnostics, polling controls, and connection settings together. "Disabled by default" entities are created but must be enabled (per-entity, or in bulk via the Configure toggles).
+Entities live on the physical FireBoard **device**, except the polling/connection controls which live on a **"FireBoard Server Connection"** service device. "Disabled by default" entities are created but must be enabled (per-entity, or in bulk via the Configure toggles).
 
 ### Temperature & cook
 | Entity | What it's for | Default |
@@ -103,7 +93,7 @@ These write to the Drive via an endpoint FireBoard does not formally document. *
 | **Drive Fan Running** | Switch off = turn the Drive fan off | Disabled |
 | **Drive Control Channel** | Which probe the Drive PID follows | Disabled |
 
-### Controls (on the `FireBoard <serial>` device)
+### Controls (on the "FireBoard Server Connection" device)
 | Entity | Type | What it controls |
 |---|---|---|
 | **Devices Refresh Interval** | Number (10–300 s) | How often `devices.json` is polled |
@@ -135,7 +125,7 @@ Changing either reloads the integration; all other options apply live.
 
 Build number format: `YYYY.MM.DD.N` — date code plus an increment that **never resets**. Defined in `const.py` (`VERSION`), synced to `manifest.json`, shown as the "FireBoard Server Connection" device software version, and logged at startup.
 
-Current version: **2026.09.03.30**
+Current version: **2026.09.03.28**
 
 ---
 

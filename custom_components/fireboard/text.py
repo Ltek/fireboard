@@ -1,4 +1,4 @@
-# Version: 2026.09.03.30
+# Version: 2026.09.03.31
 """Text platform for FireBoard: per-device LAN IP for reachability checks."""
 
 from __future__ import annotations

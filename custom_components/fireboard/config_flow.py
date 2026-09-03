@@ -1,4 +1,4 @@
-# Version: 2026.09.03.30
+# Version: 2026.09.03.31
 """Config flow for FireBoard integration."""
 
 from __future__ import annotations
@@ -123,6 +123,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         super().__init__()
         self._devices: list[dict[str, Any]] = []
         self._credentials: dict[str, Any] = {}
+        self._pending_options: dict[str, Any] = {}
 
     @staticmethod
     @callback
@@ -252,9 +253,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """
         field_map = self._ip_field_labels()
 
-        # No devices with UUIDs -> nothing to configure, finish now.
+        # No devices with UUIDs -> skip straight to the entity-selection step.
         if not field_map:
-            return self._create_entry({})
+            return await self.async_step_setup_entities()
 
         errors: dict[str, str] = {}
 
@@ -275,10 +276,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
 
             if not errors:
-                options = (
-                    {CONF_DEVICE_CONFIG: device_config} if device_config else {}
-                )
-                return self._create_entry(options)
+                if device_config:
+                    self._pending_options[CONF_DEVICE_CONFIG] = device_config
+                return await self.async_step_setup_entities()
 
         # Build the form: one optional IP text field per device, labelled by
         # the device title, pre-filled with any value the user just typed.
@@ -300,6 +300,48 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     self.coordinator_device_titles()
                 )
             },
+        )
+
+    async def async_step_setup_entities(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Setup step: choose which optional entities to enable.
+
+        Shows the two group toggles plus a checkbox per optional entity. Group
+        toggles set the bulk default; individual checkboxes are the per-entity
+        overrides. Submitting creates the config entry.
+        """
+        if user_input is not None:
+            enable_diag = user_input.pop(CONF_ENABLE_DIAGNOSTICS, False)
+            enable_drive_ctl = user_input.pop(CONF_ENABLE_SETPOINT, False)
+            options = {
+                **self._pending_options,
+                CONF_ENABLE_DIAGNOSTICS: enable_diag,
+                CONF_ENABLE_SETPOINT: enable_drive_ctl,
+                # Remaining keys are the per-entity checkboxes.
+                CONF_ENABLED_ENTITIES: dict(user_input),
+            }
+            return self._create_entry(options)
+
+        schema_dict: dict[Any, Any] = {
+            vol.Optional(
+                CONF_ENABLE_DIAGNOSTICS, default=DEFAULT_ENABLE_DIAGNOSTICS
+            ): bool,
+            vol.Optional(
+                CONF_ENABLE_SETPOINT, default=DEFAULT_ENABLE_SETPOINT
+            ): bool,
+        }
+        for key, _label, group in OPTIONAL_ENTITIES:
+            default = (
+                DEFAULT_ENABLE_SETPOINT
+                if group == "drive"
+                else DEFAULT_ENABLE_DIAGNOSTICS
+            )
+            schema_dict[vol.Optional(key, default=default)] = bool
+
+        return self.async_show_form(
+            step_id="setup_entities",
+            data_schema=vol.Schema(schema_dict),
         )
 
     def coordinator_device_titles(self) -> list[str]:

@@ -21,6 +21,35 @@
           "email": "Email",
           "password": "Password"
         }
+      },
+      "setup_entities": {
+        "title": "Choose entities to enable",
+        "description": "Turn on the optional entities you want. The two toggles at the top enable a whole group at once; the checkboxes below let you pick individual ones. You can change all of this later under the integration's Configure.",
+        "data": {
+          "enable_diagnostics": "Enable ALL diagnostic sensors",
+          "enable_setpoint_control": "Enable ALL experimental Drive controls (writes to the device)",
+          "onboard_temp": "Onboard Temperature",
+          "battery_voltage": "Battery Voltage",
+          "signal_strength": "WiFi Signal",
+          "link_quality": "WiFi Link Quality",
+          "session_count": "Session Count",
+          "last_cook": "Last Cook",
+          "drive_battery": "Drive Battery",
+          "internal_ip": "IP Address",
+          "public_ip": "Public IP",
+          "mac_address": "MAC Address",
+          "ssid": "WiFi Network",
+          "wifi_band": "WiFi Band",
+          "wifi_frequency": "WiFi Frequency",
+          "uptime": "Uptime",
+          "firmware_version": "Firmware Version",
+          "channel_count": "Channel Count",
+          "model_name": "Model Name",
+          "hardware_id": "Serial Number",
+          "drive_speed": "Drive Fan Speed",
+          "drive_off": "Drive Fan Running",
+          "drive_channel": "Drive Control Channel"
+        }
       }
     },
     "error": {

@@ -8,7 +8,7 @@ DOMAIN: Final = "fireboard"
 
 # Release version: YYYY.MM.DD.N where N is an increment that never resets.
 # Keep in sync with manifest.json "version".
-VERSION: Final = "2026.09.03.30"
+VERSION: Final = "2026.09.03.31"
 
 # Suffix appended to every entity unique_id. Bump this to force Home Assistant
 # to create brand-new entities (with current naming) instead of re-adopting
