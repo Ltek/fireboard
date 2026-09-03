@@ -255,7 +255,9 @@ class FireBoardOnboardTempSensor(FireBoardEntity, SensorEntity):
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_onboard_temp_{UNIQUE_ID_VERSION}"
         self._attr_name = "Onboard Temperature"
-        self._attr_entity_registry_enabled_default = coordinator.enable_diagnostics
+        self._attr_entity_registry_enabled_default = (
+            coordinator.entity_enabled_default("onboard_temp", "diagnostics")
+        )
 
     @property
     def native_value(self) -> float | None:
@@ -534,6 +536,9 @@ class FireBoardDriveBatterySensor(FireBoardEntity, SensorEntity):
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_drive_battery_{UNIQUE_ID_VERSION}"
         self._attr_name = "Drive Battery"
+        self._attr_entity_registry_enabled_default = (
+            coordinator.entity_enabled_default("drive_battery", "diagnostics")
+        )
 
     @property
     def available(self) -> bool:
@@ -574,7 +579,9 @@ class FireBoardSignalStrengthSensor(FireBoardEntity, SensorEntity):
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_signal_strength_{UNIQUE_ID_VERSION}"
         self._attr_name = "WiFi Signal"
-        self._attr_entity_registry_enabled_default = coordinator.enable_diagnostics
+        self._attr_entity_registry_enabled_default = (
+            coordinator.entity_enabled_default("signal_strength", "diagnostics")
+        )
 
     @property
     def native_value(self) -> int | None:
@@ -622,7 +629,9 @@ class FireBoardLinkQualitySensor(FireBoardEntity, SensorEntity):
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_link_quality_{UNIQUE_ID_VERSION}"
         self._attr_name = "WiFi Link Quality"
-        self._attr_entity_registry_enabled_default = coordinator.enable_diagnostics
+        self._attr_entity_registry_enabled_default = (
+            coordinator.entity_enabled_default("link_quality", "diagnostics")
+        )
 
     @property
     def native_value(self) -> int | None:
@@ -657,7 +666,9 @@ class FireBoardBatteryVoltageSensor(FireBoardEntity, SensorEntity):
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_battery_voltage_{UNIQUE_ID_VERSION}"
         self._attr_name = "Battery Voltage"
-        self._attr_entity_registry_enabled_default = coordinator.enable_diagnostics
+        self._attr_entity_registry_enabled_default = (
+            coordinator.entity_enabled_default("battery_voltage", "diagnostics")
+        )
 
     @property
     def native_value(self) -> float | None:
@@ -690,7 +701,9 @@ class FireBoardDiagnosticSensor(FireBoardEntity, SensorEntity):
         self._field = field
         self._attr_unique_id = f"{device_uuid}_{key}_{UNIQUE_ID_VERSION}"
         self._attr_name = name
-        self._attr_entity_registry_enabled_default = coordinator.enable_diagnostics
+        self._attr_entity_registry_enabled_default = (
+            coordinator.entity_enabled_default(key, "diagnostics")
+        )
         if icon:
             self._attr_icon = icon
 
@@ -722,6 +735,9 @@ class FireBoardSessionCountSensor(FireBoardEntity, SensorEntity):
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_session_count_{UNIQUE_ID_VERSION}"
         self._attr_name = "Session Count"
+        self._attr_entity_registry_enabled_default = (
+            coordinator.entity_enabled_default("session_count", "diagnostics")
+        )
 
     @property
     def native_value(self) -> int:
@@ -744,6 +760,9 @@ class FireBoardLastCookSensor(FireBoardEntity, SensorEntity):
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_last_cook_{UNIQUE_ID_VERSION}"
         self._attr_name = "Last Cook"
+        self._attr_entity_registry_enabled_default = (
+            coordinator.entity_enabled_default("last_cook", "diagnostics")
+        )
 
     @property
     def native_value(self) -> str | None:

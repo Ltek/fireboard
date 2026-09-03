@@ -45,16 +45,45 @@
           "enable_drive": "Enable FireBoard Drive (fan controller) sensors",
           "drive_interval": "Drive refresh interval (seconds)",
           "offline_interval": "Offline refresh interval (seconds)",
-          "enable_diagnostics": "Enable diagnostic sensors (IP, MAC, WiFi, battery voltage, versions, etc.)",
-          "enable_setpoint_control": "Enable experimental Drive controls (setpoint, fan speed, on/off, control channel — writes to the device)"
+          "enable_diagnostics": "Enable all diagnostic sensors (IP, MAC, WiFi, battery voltage, versions, etc.)",
+          "enable_setpoint_control": "Enable all experimental Drive controls (fan speed, on/off, control channel — writes to the device)",
+          "choose_individual_entities": "Choose individual entities on the next screen"
         },
         "data_description": {
           "devices_interval": "How often to query devices.json for temperatures, battery, onboard temp, model and firmware. One request per poll regardless of device count.",
           "enable_drive": "Adds fan output, setpoint and lid-paused sensors.",
           "drive_interval": "How often to query drivelog.json. One request per device on each Drive poll (only used when Drive is enabled).",
           "offline_interval": "Fast poll rate used to catch a reconnection when a device with offline polling enabled is detected on the network but its cloud data is still stale. Also configurable per device via the entities.",
-          "enable_diagnostics": "Creates the normally-hidden diagnostic sensors enabled. You can also enable individual ones from each entity's settings.",
-          "enable_setpoint_control": "Creates the experimental Drive control entities enabled (setpoint, fan speed, fan on/off, control channel). They write to your FireBoard Drive hardware."
+          "enable_diagnostics": "Turns on every diagnostic sensor at once. For finer control, use the checkbox below to pick individual entities.",
+          "enable_setpoint_control": "Turns on every experimental Drive control at once. They write to your FireBoard Drive hardware.",
+          "choose_individual_entities": "Opens a second page with a checkbox for each optional entity, pre-filled from the toggles above."
+        }
+      },
+      "entities": {
+        "title": "Choose individual entities",
+        "description": "Enable exactly the optional entities you want. Boxes are pre-filled from the group toggles on the previous screen; changes here override them.",
+        "data": {
+          "onboard_temp": "Onboard Temperature",
+          "battery_voltage": "Battery Voltage",
+          "signal_strength": "WiFi Signal",
+          "link_quality": "WiFi Link Quality",
+          "session_count": "Session Count",
+          "last_cook": "Last Cook",
+          "drive_battery": "Drive Battery",
+          "internal_ip": "IP Address",
+          "public_ip": "Public IP",
+          "mac_address": "MAC Address",
+          "ssid": "WiFi Network",
+          "wifi_band": "WiFi Band",
+          "wifi_frequency": "WiFi Frequency",
+          "uptime": "Uptime",
+          "firmware_version": "Firmware Version",
+          "channel_count": "Channel Count",
+          "model_name": "Model Name",
+          "hardware_id": "Serial Number",
+          "drive_speed": "Drive Fan Speed",
+          "drive_off": "Drive Fan Running",
+          "drive_channel": "Drive Control Channel"
         }
       }
     }

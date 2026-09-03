@@ -1,4 +1,4 @@
-# Version: 2026.09.03.28
+# Version: 2026.09.03.30
 """Text platform for FireBoard: per-device LAN IP for reachability checks."""
 
 from __future__ import annotations
@@ -55,7 +55,7 @@ class FireBoardDeviceIpText(FireBoardConfigEntity, TextEntity):
         """Initialize the IP text entity."""
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_lan_ip_{UNIQUE_ID_VERSION}"
-        self._attr_name = f"{self._device_title} LAN IP"
+        self._attr_name = "LAN IP"
 
     @property
     def native_value(self) -> str | None:

@@ -6,7 +6,6 @@ from typing import Any
 
 from homeassistant.helpers.device_registry import (
     CONNECTION_NETWORK_MAC,
-    DeviceEntryType,
     DeviceInfo,
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -14,21 +13,44 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN, VERSION
 from .coordinator import FireBoardDataUpdateCoordinator
 
-# Name of the integration-level "service" device that groups the FireBoard
-# cloud connection settings (refresh intervals, drive toggle, per-device LAN IP
-# and offline-polling controls).
-SERVICE_DEVICE_NAME = "FireBoard Server Connection"
+
+def fireboard_device_name(device_info: dict[str, Any]) -> str:
+    """Compose the device name as 'FireBoard <serial>'.
+
+    Falls back to the API title, then a plain 'FireBoard', if no serial.
+    """
+    serial = device_info.get("hardware_id")
+    if serial:
+        return f"FireBoard {serial}"
+    return device_info.get("title") or "FireBoard"
 
 
-def service_device_info(entry_id: str) -> DeviceInfo:
-    """Return the DeviceInfo for the integration's server-connection device."""
+def build_device_info(
+    coordinator: FireBoardDataUpdateCoordinator, device_uuid: str
+) -> DeviceInfo:
+    """Return the DeviceInfo for a physical FireBoard device.
+
+    Every entity (temps, diagnostics, polling/interval controls, LAN IP, etc.)
+    attaches to this single per-device DeviceInfo so they all group under one
+    'FireBoard <serial>' device.
+    """
+    device_data = coordinator.data.get(device_uuid, {})
+    device_info = device_data.get("device_info", {})
+    device_log = device_data.get("device_log", {})
+
+    connections = set()
+    mac = device_log.get("macNIC")
+    if mac:
+        connections.add((CONNECTION_NETWORK_MAC, mac))
+
     return DeviceInfo(
-        identifiers={(DOMAIN, f"{entry_id}_config")},
-        name=SERVICE_DEVICE_NAME,
+        identifiers={(DOMAIN, device_uuid)},
+        connections=connections,
+        name=fireboard_device_name(device_info),
         manufacturer="FireBoard",
-        model="Cloud Integration",
-        sw_version=VERSION,
-        entry_type=DeviceEntryType.SERVICE,
+        model=device_info.get("model", "FireBoard"),
+        serial_number=device_info.get("hardware_id"),
+        sw_version=device_info.get("version") or VERSION,
         configuration_url="https://fireboard.io",
     )
 
@@ -67,41 +89,10 @@ class FireBoardEntity(CoordinatorEntity[FireBoardDataUpdateCoordinator]):
         # in "hardware_id".
         self._device_model = device_info.get("model", "FireBoard")
 
-    def _device_name(self) -> str:
-        """Compose the device name as 'Model Serial' (falls back gracefully)."""
-        device_info = self.coordinator.data.get(self._device_uuid, {}).get(
-            "device_info", {}
-        )
-        model = device_info.get("model")
-        serial = device_info.get("hardware_id")
-        parts = [p for p in (model, serial) if p]
-        return " ".join(parts) or device_info.get("title") or "FireBoard"
-
     @property
     def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        device_data = self.coordinator.data.get(self._device_uuid, {})
-        device_info = device_data.get("device_info", {})
-        device_log = device_data.get("device_log", {})
-
-        # Expose the network MAC (device_log.macNIC) as a device connection.
-        connections = set()
-        mac = device_log.get("macNIC")
-        if mac:
-            connections.add((CONNECTION_NETWORK_MAC, mac))
-
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_uuid)},
-            connections=connections,
-            # Device name is Model + Serial (e.g. "FBX2D GCMC8H432").
-            name=self._device_name(),
-            manufacturer="FireBoard",
-            model=device_info.get("model", "FireBoard"),
-            serial_number=device_info.get("hardware_id"),
-            # Firmware version is reported in the "version" field.
-            sw_version=device_info.get("version"),
-            configuration_url="https://fireboard.io",
-        )
+        """Return device information (one 'FireBoard <serial>' device)."""
+        return build_device_info(self.coordinator, self._device_uuid)
 
     @property
     def available(self) -> bool:
@@ -127,22 +118,11 @@ class FireBoardEntity(CoordinatorEntity[FireBoardDataUpdateCoordinator]):
 
 
 class FireBoardConfigEntity(FireBoardEntity):
-    """A per-device configuration entity grouped under the service device.
+    """A per-device configuration entity (LAN IP, offline polling, etc.).
 
-    Behaves like FireBoardEntity (knows its device UUID / title) but is placed
-    on the integration's "FireBoard Server Connection" device so all connection
-    and polling controls live together, rather than being mixed in with the
-    physical FireBoard's temperature entities.
+    Lives on the same 'FireBoard <serial>' device as everything else, but stays
+    available even when the device is offline (so you can always edit config).
     """
-
-    # These share one service device across all FireBoards, so keep the full
-    # explicit name (which includes the device title) to tell them apart.
-    _attr_has_entity_name = False
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Group this control under the server-connection service device."""
-        return service_device_info(self.coordinator.config_entry.entry_id)
 
     @property
     def available(self) -> bool:

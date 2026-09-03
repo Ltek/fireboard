@@ -50,6 +50,7 @@ from .const import (
     CONF_ENABLE_DIAGNOSTICS,
     CONF_ENABLE_DRIVE,
     CONF_ENABLE_SETPOINT,
+    CONF_ENABLED_ENTITIES,
     CONF_OFFLINE_INTERVAL,
     CONF_POLLING_INTERVAL,
     DEFAULT_DEVICES_INTERVAL,
@@ -92,6 +93,7 @@ class FireBoardDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._offline_interval: int = DEFAULT_OFFLINE_INTERVAL
         self._enable_diagnostics: bool = DEFAULT_ENABLE_DIAGNOSTICS
         self._enable_setpoint: bool = DEFAULT_ENABLE_SETPOINT
+        self._enabled_entities: dict[str, bool] = {}
         # Per-device config: {uuid: {ip, offline_poll_enabled}}.
         self._device_config: dict[str, dict[str, Any]] = {}
 
@@ -125,6 +127,11 @@ class FireBoardDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=self._tick_seconds()),
         )
 
+    @property
+    def primary_device_uuid(self) -> str | None:
+        """Return the first device UUID (host for global controls)."""
+        return next(iter(self.data), None) if self.data else None
+
     # ---- Global live settings (exposed to number/switch entities) ----
 
     @property
@@ -156,6 +163,24 @@ class FireBoardDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def enable_setpoint(self) -> bool:
         """Whether the experimental setpoint control is enabled by default."""
         return self._enable_setpoint
+
+    @property
+    def enabled_entities(self) -> dict[str, bool]:
+        """Return the per-entity enable override map."""
+        return self._enabled_entities
+
+    def entity_enabled_default(self, key: str, group: str) -> bool:
+        """Resolve enabled-by-default for an optional entity.
+
+        A per-entity override (from the options flow's entity page) wins;
+        otherwise fall back to the group toggle ("diagnostics" or "drive").
+        """
+        overrides = self._enabled_entities
+        if key in overrides:
+            return bool(overrides[key])
+        if group == "drive":
+            return self._enable_setpoint
+        return self._enable_diagnostics
 
     # ---- Per-device settings / state (exposed to per-device entities) ----
 
@@ -264,6 +289,7 @@ class FireBoardDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._enable_setpoint = bool(
             options.get(CONF_ENABLE_SETPOINT, DEFAULT_ENABLE_SETPOINT)
         )
+        self._enabled_entities = dict(options.get(CONF_ENABLED_ENTITIES, {}))
         self._device_config = dict(options.get(CONF_DEVICE_CONFIG, {}))
 
     async def async_apply_options(self) -> None:

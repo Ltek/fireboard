@@ -59,7 +59,7 @@ The moment the IP reappears, an immediate refresh fires. (The fast "offline" rat
 
 ## Entities
 
-Entities live on the physical FireBoard **device**, except the polling/connection controls which live on a **"FireBoard Server Connection"** service device. "Disabled by default" entities are created but must be enabled (per-entity, or in bulk via the Configure toggles).
+All entities for a FireBoard live under a single device named **`FireBoard <serial>`** (e.g. "FireBoard GCMC8H432") — temps, diagnostics, polling controls, and connection settings together. "Disabled by default" entities are created but must be enabled (per-entity, or in bulk via the Configure toggles).
 
 ### Temperature & cook
 | Entity | What it's for | Default |
@@ -103,7 +103,7 @@ These write to the Drive via an endpoint FireBoard does not formally document. *
 | **Drive Fan Running** | Switch off = turn the Drive fan off | Disabled |
 | **Drive Control Channel** | Which probe the Drive PID follows | Disabled |
 
-### Controls (on the "FireBoard Server Connection" device)
+### Controls (on the `FireBoard <serial>` device)
 | Entity | Type | What it controls |
 |---|---|---|
 | **Devices Refresh Interval** | Number (10–300 s) | How often `devices.json` is polled |
@@ -135,7 +135,7 @@ Changing either reloads the integration; all other options apply live.
 
 Build number format: `YYYY.MM.DD.N` — date code plus an increment that **never resets**. Defined in `const.py` (`VERSION`), synced to `manifest.json`, shown as the "FireBoard Server Connection" device software version, and logged at startup.
 
-Current version: **2026.09.03.28**
+Current version: **2026.09.03.30**
 
 ---
 

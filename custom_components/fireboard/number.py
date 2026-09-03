@@ -32,7 +32,7 @@ from .const import (
     UNIQUE_ID_VERSION,
 )
 from .coordinator import FireBoardDataUpdateCoordinator
-from .entity import FireBoardEntity, service_device_info
+from .entity import FireBoardEntity, build_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -66,8 +66,13 @@ async def async_setup_entry(
 class _FireBoardIntervalNumber(
     CoordinatorEntity[FireBoardDataUpdateCoordinator], NumberEntity
 ):
-    """Base class for a config-entry-scoped interval control."""
+    """Base class for a global interval control.
 
+    These are account-wide settings; they attach to the primary FireBoard
+    device so every entity groups under one 'FireBoard <serial>' device.
+    """
+
+    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.CONFIG
     _attr_native_unit_of_measurement = UnitOfTime.SECONDS
     _attr_native_step = 1
@@ -76,9 +81,9 @@ class _FireBoardIntervalNumber(
     def __init__(self, coordinator: FireBoardDataUpdateCoordinator) -> None:
         """Initialize the interval number."""
         super().__init__(coordinator)
-        self._attr_device_info = service_device_info(
-            coordinator.config_entry.entry_id
-        )
+        uuid = coordinator.primary_device_uuid
+        if uuid:
+            self._attr_device_info = build_device_info(coordinator, uuid)
 
 
 class FireBoardDevicesIntervalNumber(_FireBoardIntervalNumber):
@@ -93,7 +98,7 @@ class FireBoardDevicesIntervalNumber(_FireBoardIntervalNumber):
         super().__init__(coordinator)
         entry = coordinator.config_entry
         self._attr_unique_id = f"{entry.entry_id}_devices_interval_{UNIQUE_ID_VERSION}"
-        self._attr_name = "FireBoard Devices Refresh Interval"
+        self._attr_name = "Devices Refresh Interval"
 
     @property
     def native_value(self) -> float:
@@ -119,7 +124,7 @@ class FireBoardDriveIntervalNumber(_FireBoardIntervalNumber):
         super().__init__(coordinator)
         entry = coordinator.config_entry
         self._attr_unique_id = f"{entry.entry_id}_drive_interval_{UNIQUE_ID_VERSION}"
-        self._attr_name = "FireBoard Drive Refresh Interval"
+        self._attr_name = "Drive Refresh Interval"
 
     @property
     def native_value(self) -> float:
@@ -150,7 +155,7 @@ class FireBoardOfflineIntervalNumber(_FireBoardIntervalNumber):
         super().__init__(coordinator)
         entry = coordinator.config_entry
         self._attr_unique_id = f"{entry.entry_id}_offline_interval_{UNIQUE_ID_VERSION}"
-        self._attr_name = "FireBoard Offline Refresh Interval"
+        self._attr_name = "Offline Refresh Interval"
 
     @property
     def native_value(self) -> float:
@@ -265,7 +270,9 @@ class FireBoardDriveSpeedNumber(FireBoardEntity, NumberEntity):
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_drive_speed_{UNIQUE_ID_VERSION}"
         self._attr_name = "Drive Fan Speed"
-        self._attr_entity_registry_enabled_default = coordinator.enable_setpoint
+        self._attr_entity_registry_enabled_default = (
+            coordinator.entity_enabled_default("drive_speed", "drive")
+        )
 
     @property
     def available(self) -> bool:
@@ -313,7 +320,9 @@ class FireBoardDriveChannelNumber(FireBoardEntity, NumberEntity):
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_drive_channel_{UNIQUE_ID_VERSION}"
         self._attr_name = "Drive Control Channel"
-        self._attr_entity_registry_enabled_default = coordinator.enable_setpoint
+        self._attr_entity_registry_enabled_default = (
+            coordinator.entity_enabled_default("drive_channel", "drive")
+        )
 
     @property
     def native_max_value(self) -> float:

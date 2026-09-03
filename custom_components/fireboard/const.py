@@ -8,13 +8,13 @@ DOMAIN: Final = "fireboard"
 
 # Release version: YYYY.MM.DD.N where N is an increment that never resets.
 # Keep in sync with manifest.json "version".
-VERSION: Final = "2026.09.03.28"
+VERSION: Final = "2026.09.03.30"
 
 # Suffix appended to every entity unique_id. Bump this to force Home Assistant
 # to create brand-new entities (with current naming) instead of re-adopting
 # stale entity-registry rows from an earlier install. Old rows become inert
 # orphans.
-UNIQUE_ID_VERSION: Final = "v4"
+UNIQUE_ID_VERSION: Final = "v5"
 
 # Strict IPv4 dotted-decimal: four 0-255 octets, no leading zeros, no
 # hostnames/IPv6/partials. Used to validate user-entered device LAN IPs.
@@ -60,6 +60,40 @@ CONF_ENABLE_DIAGNOSTICS: Final = "enable_diagnostics"
 CONF_ENABLE_SETPOINT: Final = "enable_setpoint_control"
 DEFAULT_ENABLE_DIAGNOSTICS: Final = False
 DEFAULT_ENABLE_SETPOINT: Final = False
+# Per-entity enable overrides (dict {entity_key: bool}) chosen on the options
+# flow's second page. An entry here wins over the group toggle above.
+CONF_ENABLED_ENTITIES: Final = "enabled_entities"
+# Transient options-flow field: route to the per-entity checkbox page.
+CONF_CHOOSE_ENTITIES: Final = "choose_individual_entities"
+
+# Catalog of individually-toggleable optional entities: (key, label, group).
+# group is "diagnostics" or "drive" -- the matching group toggle is the
+# default when a key has no explicit per-entity override.
+OPTIONAL_ENTITIES: Final = (
+    # Diagnostics group
+    ("onboard_temp", "Onboard Temperature", "diagnostics"),
+    ("battery_voltage", "Battery Voltage", "diagnostics"),
+    ("signal_strength", "WiFi Signal", "diagnostics"),
+    ("link_quality", "WiFi Link Quality", "diagnostics"),
+    ("session_count", "Session Count", "diagnostics"),
+    ("last_cook", "Last Cook", "diagnostics"),
+    ("drive_battery", "Drive Battery", "diagnostics"),
+    ("internal_ip", "IP Address", "diagnostics"),
+    ("public_ip", "Public IP", "diagnostics"),
+    ("mac_address", "MAC Address", "diagnostics"),
+    ("ssid", "WiFi Network", "diagnostics"),
+    ("wifi_band", "WiFi Band", "diagnostics"),
+    ("wifi_frequency", "WiFi Frequency", "diagnostics"),
+    ("uptime", "Uptime", "diagnostics"),
+    ("firmware_version", "Firmware Version", "diagnostics"),
+    ("channel_count", "Channel Count", "diagnostics"),
+    ("model_name", "Model Name", "diagnostics"),
+    ("hardware_id", "Serial Number", "diagnostics"),
+    # Drive control group (setpoint target is enabled by default separately)
+    ("drive_speed", "Drive Fan Speed", "drive"),
+    ("drive_off", "Drive Fan Running", "drive"),
+    ("drive_channel", "Drive Control Channel", "drive"),
+)
 
 # Per-device configuration, stored in options under CONF_DEVICE_CONFIG as
 # {uuid: {DEV_CONF_IP: str, DEV_CONF_OFFLINE_POLL: bool}}.

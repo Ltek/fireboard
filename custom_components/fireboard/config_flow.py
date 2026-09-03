@@ -1,4 +1,4 @@
-# Version: 2026.09.03.28
+# Version: 2026.09.03.30
 """Config flow for FireBoard integration."""
 
 from __future__ import annotations
@@ -25,9 +25,11 @@ from .const import (
     CONF_DEVICE_CONFIG,
     CONF_DEVICES_INTERVAL,
     CONF_DRIVE_INTERVAL,
+    CONF_CHOOSE_ENTITIES,
     CONF_ENABLE_DIAGNOSTICS,
     CONF_ENABLE_DRIVE,
     CONF_ENABLE_SETPOINT,
+    CONF_ENABLED_ENTITIES,
     CONF_OFFLINE_INTERVAL,
     DEFAULT_DEVICES_INTERVAL,
     DEFAULT_DRIVE_INTERVAL,
@@ -43,6 +45,7 @@ from .const import (
     MIN_DRIVE_INTERVAL,
     MIN_OFFLINE_INTERVAL,
     MIN_POLLING_INTERVAL,
+    OPTIONAL_ENTITIES,
     is_valid_ipv4,
 )
 
@@ -57,9 +60,24 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 
 
 def _options_schema(options: dict[str, Any]) -> vol.Schema:
-    """Build the options schema pre-filled with current values."""
+    """Page 1: group-enable toggles first, then intervals, then the route to
+    the per-entity page."""
     return vol.Schema(
         {
+            # --- Group enable toggles (top) ---
+            vol.Optional(
+                CONF_ENABLE_DIAGNOSTICS,
+                default=options.get(
+                    CONF_ENABLE_DIAGNOSTICS, DEFAULT_ENABLE_DIAGNOSTICS
+                ),
+            ): bool,
+            vol.Optional(
+                CONF_ENABLE_SETPOINT,
+                default=options.get(
+                    CONF_ENABLE_SETPOINT, DEFAULT_ENABLE_SETPOINT
+                ),
+            ): bool,
+            # --- Polling intervals ---
             vol.Optional(
                 CONF_DEVICES_INTERVAL,
                 default=options.get(
@@ -89,18 +107,8 @@ def _options_schema(options: dict[str, Any]) -> vol.Schema:
                 vol.Coerce(int),
                 vol.Range(min=MIN_OFFLINE_INTERVAL, max=MAX_POLLING_INTERVAL),
             ),
-            vol.Optional(
-                CONF_ENABLE_DIAGNOSTICS,
-                default=options.get(
-                    CONF_ENABLE_DIAGNOSTICS, DEFAULT_ENABLE_DIAGNOSTICS
-                ),
-            ): bool,
-            vol.Optional(
-                CONF_ENABLE_SETPOINT,
-                default=options.get(
-                    CONF_ENABLE_SETPOINT, DEFAULT_ENABLE_SETPOINT
-                ),
-            ): bool,
+            # --- Route to per-entity checkbox page ---
+            vol.Optional(CONF_CHOOSE_ENTITIES, default=False): bool,
         }
     )
 
@@ -363,25 +371,79 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle FireBoard options: per-endpoint refresh intervals.
+    """FireBoard options: intervals + group toggles, then per-entity page.
 
     ``config_entry`` is provided by the base OptionsFlow class in current
     Home Assistant versions; assigning it manually raises, so we do not.
     """
 
+    def __init__(self) -> None:
+        """Init transient state carried between the two steps."""
+        self._pending: dict[str, Any] = {}
+
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Manage the refresh interval options."""
+        """Page 1: refresh intervals + the two group-enable toggles.
+
+        A "choose individual entities" checkbox routes to page 2; otherwise we
+        save here (group toggles decide which optional entities are enabled).
+        """
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            choose_individual = user_input.pop(CONF_CHOOSE_ENTITIES, False)
+            self._pending = user_input
+            if choose_individual:
+                return await self.async_step_entities()
+            return self.async_create_entry(title="", data=self._pending)
 
-        # Pre-fill from current options, then fall back to initial data.
         current = {**self.config_entry.data, **self.config_entry.options}
-
         return self.async_show_form(
             step_id="init",
             data_schema=_options_schema(current),
+        )
+
+    async def async_step_entities(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Page 2: one checkbox per optional entity.
+
+        Each checkbox default = its current effective state (per-entity
+        override if set, else the group toggle chosen on page 1). Saved as the
+        CONF_ENABLED_ENTITIES override map.
+        """
+        current = {**self.config_entry.data, **self.config_entry.options}
+        existing_overrides = current.get(CONF_ENABLED_ENTITIES, {})
+
+        if user_input is not None:
+            options = {
+                **self.config_entry.options,
+                **self._pending,
+                CONF_ENABLED_ENTITIES: user_input,
+            }
+            return self.async_create_entry(title="", data=options)
+
+        # Group defaults come from the (pending) page-1 toggles.
+        group_default = {
+            "diagnostics": self._pending.get(
+                CONF_ENABLE_DIAGNOSTICS,
+                current.get(CONF_ENABLE_DIAGNOSTICS, DEFAULT_ENABLE_DIAGNOSTICS),
+            ),
+            "drive": self._pending.get(
+                CONF_ENABLE_SETPOINT,
+                current.get(CONF_ENABLE_SETPOINT, DEFAULT_ENABLE_SETPOINT),
+            ),
+        }
+
+        schema_dict: dict[Any, Any] = {}
+        for key, label, group in OPTIONAL_ENTITIES:
+            default = existing_overrides.get(key, group_default.get(group, False))
+            schema_dict[
+                vol.Optional(key, default=default, description={"suggested_value": default})
+            ] = bool
+
+        return self.async_show_form(
+            step_id="entities",
+            data_schema=vol.Schema(schema_dict),
         )
 
 

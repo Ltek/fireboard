@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant
 from .const import (
     CONF_ENABLE_DIAGNOSTICS,
     CONF_ENABLE_SETPOINT,
+    CONF_ENABLED_ENTITIES,
     DEFAULT_ENABLE_DIAGNOSTICS,
     DEFAULT_ENABLE_SETPOINT,
     DOMAIN,
@@ -71,6 +72,8 @@ async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> Non
         != coordinator.enable_diagnostics
         or options.get(CONF_ENABLE_SETPOINT, DEFAULT_ENABLE_SETPOINT)
         != coordinator.enable_setpoint
+        or options.get(CONF_ENABLED_ENTITIES, {})
+        != coordinator.enabled_entities
     )
 
     if creation_toggles_changed:

@@ -213,7 +213,7 @@ class FireBoardOnNetworkSensor(FireBoardConfigEntity, BinarySensorEntity):
         """Initialize the on-network sensor."""
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_on_network_{UNIQUE_ID_VERSION}"
-        self._attr_name = f"{self._device_title} On Network"
+        self._attr_name = "On Network"
 
     @property
     def available(self) -> bool:

@@ -14,7 +14,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import CONF_ENABLE_DRIVE, DEV_CONF_OFFLINE_POLL, DOMAIN, UNIQUE_ID_VERSION
 from .coordinator import FireBoardDataUpdateCoordinator
-from .entity import FireBoardConfigEntity, FireBoardEntity, service_device_info
+from .entity import FireBoardConfigEntity, FireBoardEntity, build_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,6 +43,7 @@ class FireBoardDriveSwitch(
 ):
     """Enable or disable FireBoard Drive (drivelog.json) polling."""
 
+    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.CONFIG
     _attr_icon = "mdi:fan"
 
@@ -51,8 +52,10 @@ class FireBoardDriveSwitch(
         super().__init__(coordinator)
         entry = coordinator.config_entry
         self._attr_unique_id = f"{entry.entry_id}_enable_drive_{UNIQUE_ID_VERSION}"
-        self._attr_name = "FireBoard Drive Polling"
-        self._attr_device_info = service_device_info(entry.entry_id)
+        self._attr_name = "Drive Polling"
+        uuid = coordinator.primary_device_uuid
+        if uuid:
+            self._attr_device_info = build_device_info(coordinator, uuid)
 
     @property
     def is_on(self) -> bool:
@@ -87,7 +90,7 @@ class FireBoardOfflinePollSwitch(FireBoardConfigEntity, SwitchEntity):
         """Initialize the offline-poll switch."""
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_offline_poll_{UNIQUE_ID_VERSION}"
-        self._attr_name = f"{self._device_title} Offline Polling"
+        self._attr_name = "Offline Polling"
 
     @property
     def is_on(self) -> bool:
@@ -129,7 +132,9 @@ class FireBoardDriveOffSwitch(FireBoardEntity, SwitchEntity):
         super().__init__(coordinator, device_uuid)
         self._attr_unique_id = f"{device_uuid}_drive_off_{UNIQUE_ID_VERSION}"
         self._attr_name = "Drive Fan Running"
-        self._attr_entity_registry_enabled_default = coordinator.enable_setpoint
+        self._attr_entity_registry_enabled_default = (
+            coordinator.entity_enabled_default("drive_off", "drive")
+        )
 
     @property
     def available(self) -> bool:
