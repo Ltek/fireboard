@@ -143,15 +143,7 @@ class FireBoardTemperatureSensor(FireBoardEntity, SensorEntity):
         """Initialize the temperature sensor."""
         super().__init__(coordinator, device_uuid, channel_number)
 
-        # Get channel info for naming from device configuration
         device_info = self._device_data.get("device_info", {})
-        channels = device_info.get("channels", [])
-        channel_label = ""
-
-        for channel in channels:
-            if channel.get("channel") == channel_number:
-                channel_label = channel.get("channel_label") or ""
-                break
 
         self._attr_unique_id = f"{device_uuid}_temp_{channel_number}_{UNIQUE_ID_VERSION}"
 
@@ -166,16 +158,21 @@ class FireBoardTemperatureSensor(FireBoardEntity, SensorEntity):
             hass=coordinator.hass,
         )
 
-        # Name format: "Channel <#> - <label>". Omit the label when it is blank
-        # or just FireBoard's own default ("Channel N"), so an un-named channel
-        # shows plain "Channel N" instead of "Channel N - Channel N".
-        default_label = f"Channel {channel_number}"
-        if channel_label and channel_label.strip().casefold() != (
-            default_label.casefold()
-        ):
-            self._attr_name = f"{default_label} - {channel_label}"
-        else:
-            self._attr_name = default_label
+    @property
+    def name(self) -> str:
+        """Return the channel's display name, tracking the FireBoard label.
+
+        Computed live on every state update (not frozen at __init__) so renaming
+        a channel in the FireBoard app flows through on the next poll. Format:
+        "Channel <#> - <label>", with the label omitted when it is blank or just
+        FireBoard's own default ("Channel N"), so an un-named channel shows plain
+        "Channel N" instead of "Channel N - Channel N".
+        """
+        channel_label = (self._get_channel().get("channel_label") or "").strip()
+        default_label = f"Channel {self._channel_number}"
+        if channel_label and channel_label.casefold() != default_label.casefold():
+            return f"{default_label} - {channel_label}"
+        return default_label
 
     def _get_channel(self) -> dict[str, Any]:
         """Return the channel object for this sensor from coordinator data."""
@@ -205,7 +202,7 @@ class FireBoardTemperatureSensor(FireBoardEntity, SensorEntity):
             return float(temp)
         except (ValueError, TypeError):
             _LOGGER.warning(
-                "Invalid temperature value for %s: %s", self._attr_name, temp
+                "Invalid temperature value for %s: %s", self.name, temp
             )
             return None
 
